@@ -84,6 +84,37 @@
             font-size: 1.1rem;
             margin-top: 15px;
         }
+        .hints-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 20px 0;
+            min-height: 100px;
+            border: 1px dashed rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .hint-item {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #78b3ff;
+            transition: all 0.3s ease;
+            filter: blur(5px);
+            user-select: none;
+            opacity: 0.5;
+        }
+        .hint-item.revealed {
+            filter: none;
+            opacity: 1;
+            background: rgba(120, 179, 255, 0.15);
+            user-select: text;
+        }
+        .hint-item.current {
+            border: 2px solid #14c669;
+            background: rgba(20, 198, 105, 0.1);
+        }
         .question-mark {
             font-size: 4rem;
             color: #c6bd14;
@@ -261,7 +292,7 @@
         <div class="hint-container">
             <div class="question-mark">?</div>
             <div class="hint-label" id="hintLabel">Hint {{ hint_number }} of 10</div>
-            <div class="hint-text" id="hintText">{{ current_hint }}</div>
+            <div class="hints-grid" id="hintsGrid"></div>
             <div class="points-info" id="pointsInfo">Worth up to {{ max_score }} points!</div>
         </div>
 
@@ -294,45 +325,65 @@
     </div>
 
     <script>
-        const allNames = {{ all_names|safe }};
-        const searchInput = document.getElementById('searchInput');
-        const dropdown = document.getElementById('dropdown');
-        const selectedAnswer = document.getElementById('selectedAnswer');
-        const selectedNameSpan = document.getElementById('selectedName');
-        const confirmSection = document.getElementById('confirmSection');
-        const skipSection = document.getElementById('skipSection');
-        const changeBtn = document.getElementById('changeBtn');
-        const submitBtn = document.getElementById('submitBtn');
-        const skipBtn = document.getElementById('skipBtn');
-        const feedback = document.getElementById('feedback');
-        const loading = document.getElementById('loading');
+        var allNames = {{ all_names|JSON_dump|safe }};
+        var allHints = {{ all_hints|JSON_dump|safe }};
+        var currentHintIndex = {{ hint_number }} - 1;
         
-        let bgMusic = document.getElementById('backgroundMusic');
-        let correctSound = document.getElementById('correctSound');
-        let wrongSound = document.getElementById('wrongSound');
+        function renderHintsGrid(hintIndex) {
+            var grid = document.getElementById('hintsGrid');
+            if (!grid) return;
+            if (!allHints || allHints.length === 0) {
+                grid.innerHTML = '<div class="hint-item revealed">No hints available</div>';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < allHints.length; i++) {
+                var classes = 'hint-item';
+                if (i <= hintIndex) classes += ' revealed';
+                if (i === hintIndex) classes += ' current';
+                html += '<div class="' + classes + '" data-index="' + i + '">' + allHints[i] + '</div>';
+            }
+            grid.innerHTML = html;
+        }
+        
+        renderHintsGrid(currentHintIndex);
+        
+        var searchInput = document.getElementById('searchInput');
+        var dropdown = document.getElementById('dropdown');
+        var selectedAnswer = document.getElementById('selectedAnswer');
+        var selectedNameSpan = document.getElementById('selectedName');
+        var confirmSection = document.getElementById('confirmSection');
+        var skipSection = document.getElementById('skipSection');
+        var changeBtn = document.getElementById('changeBtn');
+        var submitBtn = document.getElementById('submitBtn');
+        var skipBtn = document.getElementById('skipBtn');
+        var feedback = document.getElementById('feedback');
+        var loading = document.getElementById('loading');
+        
+        var bgMusic = document.getElementById('backgroundMusic');
+        var correctSound = document.getElementById('correctSound');
+        var wrongSound = document.getElementById('wrongSound');
         
         bgMusic.volume = 0.25;
-        bgMusic.play().catch(() => {});
+        bgMusic.play().catch(function() {});
 
-        // Timer functionality
-        let timerInterval;
-        const TIMER_SECONDS = 15;
-        let timeLeft = TIMER_SECONDS;
+        var timerInterval;
+        var TIMER_SECONDS = 15;
+        var timeLeft = TIMER_SECONDS;
 
         function startTimer() {
             timeLeft = TIMER_SECONDS;
-            const timerDisplay = document.getElementById('timerDisplay');
+            var timerDisplay = document.getElementById('timerDisplay');
             if (!timerDisplay) {
-                const timerDiv = document.createElement('div');
+                var timerDiv = document.createElement('div');
                 timerDiv.id = 'timerDisplay';
                 timerDiv.className = 'timer-display';
                 timerDiv.style.cssText = 'text-align:center; margin-top:15px; font-size:1.1rem; color:#c6bd14;';
                 document.querySelector('.hint-container').appendChild(timerDiv);
             }
             updateTimerDisplay();
-            
             if (timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
+            timerInterval = setInterval(function() {
                 timeLeft--;
                 updateTimerDisplay();
                 if (timeLeft <= 0) {
@@ -343,10 +394,8 @@
         }
 
         function updateTimerDisplay() {
-            const timerDisplay = document.getElementById('timerDisplay');
-            if (timerDisplay) {
-                timerDisplay.textContent = `Time left: ${timeLeft} seconds`;
-            }
+            var timerDisplay = document.getElementById('timerDisplay');
+            if (timerDisplay) timerDisplay.textContent = 'Time left: ' + timeLeft + ' seconds';
         }
 
         function resetTimer() {
@@ -354,34 +403,36 @@
             startTimer();
         }
 
-        // Start timer when page loads
         startTimer();
 
-        dropdown.innerHTML = allNames.map(name => 
-            `<div class="dropdown-item" data-name="${name}">${name}</div>`
-        ).join('');
+        if (allNames && allNames.length > 0) {
+            var dropdownHtml = '';
+            for (var i = 0; i < allNames.length; i++) {
+                dropdownHtml += '<div class="dropdown-item" data-name="' + allNames[i] + '">' + allNames[i] + '</div>';
+            }
+            dropdown.innerHTML = dropdownHtml;
+        }
 
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            const items = dropdown.querySelectorAll('.dropdown-item');
-            let hasVisible = false;
-            
-            items.forEach(item => {
-                const name = item.dataset.name.toLowerCase();
-                if (name.includes(query)) {
-                    item.classList.remove('hidden');
+        searchInput.addEventListener('input', function(e) {
+            var query = e.target.value.toLowerCase();
+            var items = dropdown.querySelectorAll('.dropdown-item');
+            var hasVisible = false;
+            for (var i = 0; i < items.length; i++) {
+                var name = items[i].dataset.name.toLowerCase();
+                if (name.indexOf(query) !== -1) {
+                    items[i].classList.remove('hidden');
                     hasVisible = true;
                 } else {
-                    item.classList.add('hidden');
+                    items[i].classList.add('hidden');
                 }
-            });
-            
-            dropdown.classList.toggle('show', hasVisible && query.length > 0);
+            }
+            if (hasVisible && query.length > 0) dropdown.classList.add('show');
+            else dropdown.classList.remove('show');
         });
 
-        dropdown.addEventListener('click', (e) => {
+        dropdown.addEventListener('click', function(e) {
             if (e.target.classList.contains('dropdown-item')) {
-                const name = e.target.dataset.name;
+                var name = e.target.dataset.name;
                 searchInput.value = name;
                 selectedAnswer.value = name;
                 selectedNameSpan.textContent = name;
@@ -391,13 +442,11 @@
             }
         });
 
-        searchInput.addEventListener('focus', () => {
-            if (searchInput.value.length > 0) {
-                dropdown.classList.add('show');
-            }
+        searchInput.addEventListener('focus', function() {
+            if (searchInput.value.length > 0) dropdown.classList.add('show');
         });
 
-        changeBtn.addEventListener('click', () => {
+        changeBtn.addEventListener('click', function() {
             searchInput.value = '';
             selectedAnswer.value = '';
             confirmSection.style.display = 'none';
@@ -405,105 +454,113 @@
             searchInput.focus();
         });
 
-        submitBtn.addEventListener('click', async () => {
-            const guess = selectedAnswer.value;
+        submitBtn.addEventListener('click', function() {
+            var guess = selectedAnswer.value;
             if (!guess) return;
 
             loading.classList.add('show');
             
-            try {
-                const response = await fetch('{% url "quiz_submit_answer" %}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify({ guess })
-                });
-                const data = await response.json();
-
+            fetch('{% url "quiz_submit_answer" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ guess: guess })
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
                 if (data.action === 'correct') {
                     correctSound.play();
                     feedback.className = 'feedback correct';
-                    feedback.innerHTML = `Correct! +${data.points} points!`;
-                    setTimeout(() => {
+                    feedback.innerHTML = 'Correct! +' + data.points + ' points!';
+                    setTimeout(function() {
                         window.location.href = window.location.pathname + '?t=' + new Date().getTime();
                     }, 2000);
                 } else if (data.action === 'wrong_guess') {
                     wrongSound.play();
                     feedback.className = 'feedback wrong';
-                    feedback.innerHTML = `Incorrect! Try again or skip to next hint.`;
+                    feedback.innerHTML = 'Incorrect! Try again or skip to next hint.';
                     loading.classList.remove('show');
-                    // Update display directly
-                    document.getElementById('hintLabel').textContent = `Hint ${data.new_hint_index + 1} of 10`;
-                    document.getElementById('hintText').textContent = data.new_hint;
-                    document.getElementById('pointsInfo').textContent = `Worth up to ${data.new_max_score} points!`;
+                    currentHintIndex = data.new_hint_index;
+                    allHints = data.new_all_hints || [];
+                    document.getElementById('hintLabel').textContent = 'Hint ' + (data.new_hint_index + 1) + ' of 10';
+                    renderHintsGrid(currentHintIndex);
+                    document.getElementById('pointsInfo').textContent = 'Worth up to ' + data.new_max_score + ' points!';
+                    searchInput.value = '';
+                    selectedAnswer.value = '';
+                    confirmSection.style.display = 'none';
+                    skipSection.style.display = 'block';
                     resetTimer();
-                    setTimeout(() => {
-                        feedback.className = 'feedback';
-                    }, 2000);
+                    setTimeout(function() { feedback.className = 'feedback'; }, 2000);
                 } else if (data.action === 'failed_all_hints') {
                     wrongSound.play();
                     feedback.className = 'feedback wrong';
-                    feedback.innerHTML = `Out of hints! The answer was: <strong>${data.answer}</strong>`;
-                    setTimeout(() => {
+                    feedback.innerHTML = 'Out of hints! The answer was: <strong>' + data.answer + '</strong>';
+                    setTimeout(function() {
                         window.location.href = window.location.pathname + '?t=' + new Date().getTime();
                     }, 3000);
                 }
                 
                 if (data.game_over && data.action !== 'wrong_guess') {
-                    setTimeout(() => {
+                    setTimeout(function() {
                         window.location.href = '{% url "quiz_results" %}';
                     }, 3000);
                 }
-            } catch (error) {
+            })
+            .catch(function(error) {
                 console.error('Error:', error);
                 loading.classList.remove('show');
-            }
+            });
         });
 
-        skipBtn.addEventListener('click', async () => {
-            await skipToNextHint();
+        skipBtn.addEventListener('click', function() {
+            skipToNextHint();
         });
 
-        async function skipToNextHint() {
+        function skipToNextHint() {
             loading.classList.add('show');
             
-            try {
-                const response = await fetch('{% url "quiz_submit_answer" %}', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token }}'
-                    },
-                    body: JSON.stringify({ guess: '__SKIP__' })
-                });
-                const data = await response.json();
-                
+            fetch('{% url "quiz_submit_answer" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ guess: '__SKIP__' })
+            })
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
                 if (data.game_over) {
                     window.location.href = '{% url "quiz_results" %}';
                 } else if (data.action === 'next_question') {
                     wrongSound.play();
                     feedback.className = 'feedback wrong';
-                    feedback.innerHTML = `Out of hints! The answer was: <strong>${data.answer}</strong>`;
-                    setTimeout(() => {
+                    feedback.innerHTML = 'Out of hints! The answer was: <strong>' + data.answer + '</strong>';
+                    setTimeout(function() {
                         window.location.href = window.location.pathname + '?t=' + new Date().getTime();
                     }, 2500);
                 } else {
-                    // Update display directly
-                    document.getElementById('hintLabel').textContent = `Hint ${data.new_hint_index + 1} of 10`;
-                    document.getElementById('hintText').textContent = data.new_hint;
-                    document.getElementById('pointsInfo').textContent = `Worth up to ${data.new_max_score} points!`;
+                    currentHintIndex = data.new_hint_index;
+                    allHints = data.new_all_hints || [];
+                    document.getElementById('hintLabel').textContent = 'Hint ' + (data.new_hint_index + 1) + ' of 10';
+                    renderHintsGrid(currentHintIndex);
+                    document.getElementById('pointsInfo').textContent = 'Worth up to ' + data.new_max_score + ' points!';
+                    searchInput.value = '';
+                    selectedAnswer.value = '';
+                    confirmSection.style.display = 'none';
+                    skipSection.style.display = 'block';
                     loading.classList.remove('show');
                     resetTimer();
                 }
-            } catch (error) {
+            })
+            .catch(function(error) {
                 console.error('Error:', error);
                 loading.classList.remove('show');
-            }
+            });
         }
 
-        document.addEventListener('click', (e) => {
+        document.addEventListener('click', function(e) {
             if (!e.target.closest('.search-container')) {
                 dropdown.classList.remove('show');
             }

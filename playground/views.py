@@ -126,13 +126,14 @@ def game(request):
     current_question_key = card_data[question_counter]
     current_question_data = data[current_question_key]
     answer = current_question_data[0]
-    all_hints = current_question_data[1:]
+    all_hints_list = current_question_data[1:]
     
     current_player = player_names[current_player_index]
-    current_hint = all_hints[min(hint_index, len(all_hints)-1)]
+    current_hint = all_hints_list[min(hint_index, len(all_hints_list)-1)]
     
     request.session['current_answer'] = answer
     request.session['current_question_key'] = current_question_key
+    request.session['all_hints'] = all_hints_list
     request.session.save()
     
     return render(request, 'quiz/game.html', {
@@ -146,7 +147,8 @@ def game(request):
         'current_hint': current_hint,
         'hint_number': hint_index + 1,
         'max_score': 10 - hint_index,
-        'all_names': json.dumps(request.session.get('all_character_names', [])),
+        'all_hints': all_hints_list,
+        'all_names': request.session.get('all_character_names', []),
         'audio_files': {
             'correct': '/static/audio/correct.wav',
             'wrong': '/static/audio/wrong.wav',
@@ -222,10 +224,12 @@ def submit_answer(request):
             new_round = request.session.get('current_round', 1)
             
             new_hint = ''
+            new_all_hints = []
             if new_question_counter < len(card_data):
                 new_question_key = card_data[new_question_counter]
                 new_question_data = data[new_question_key]
-                new_hint = new_question_data[1:][min(new_hint_index, 9)]
+                new_all_hints = new_question_data[1:]
+                new_hint = new_all_hints[min(new_hint_index, 9)]
             
             return JsonResponse({
                 'correct': correct,
@@ -239,7 +243,8 @@ def submit_answer(request):
                 'new_round': new_round,
                 'new_player_name': player_names[new_player_index],
                 'new_max_score': 10 - new_hint_index,
-                'new_hint': new_hint
+                'new_hint': new_hint,
+                'new_all_hints': new_all_hints
             })
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
