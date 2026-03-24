@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Rounds - JW Quiz Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            background: linear-gradient(90deg, #c6bd14, #14c669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .players-list {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+        }
+        .player {
+            padding: 8px 0;
+            color: #14c669;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        input:focus {
+            outline: none;
+            border-color: #14c669;
+        }
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        button {
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #c6bd14, #14c669);
+            color: #1a1a2e;
+            border: none;
+        }
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(20, 198, 105, 0.4);
+        }
+        .btn-secondary:hover {
+            border-color: #14c669;
+        }
+    </style>
+</head>
+<body>
+    {% load custom_tags %}
+    <div class="container">
+        <h1>Ready to Play!</h1>
+        <p class="subtitle">Players in this game:</p>
+        
+        <div class="players-list">
+            {% for name in player_names %}
+            <div class="player">{{ name }}</div>
+            {% endfor %}
+        </div>
+        
+        <form action="{% url 'quiz_select_rounds' %}" method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="num_rounds">How many rounds? (1 - {{ max_rounds }})</label>
+                <input type="number" name="num_rounds" id="num_rounds" min="1" max="{{ max_rounds }}" value="1" required>
+            </div>
+            <div class="btn-container">
+                <a href="{% url 'quiz_index' %}"><button type="button" class="btn-secondary">Back</button></a>
+                <button type="submit" class="btn-primary">Start Quiz!</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

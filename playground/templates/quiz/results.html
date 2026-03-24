@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results - JW Quiz Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        h1 {
+            background: linear-gradient(90deg, #c6bd14, #14c669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 40px;
+        }
+        .winner-section {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid gold;
+            border-radius: 20px;
+            padding: 30px 50px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        .trophy {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+        .winner-name {
+            font-size: 2rem;
+            color: gold;
+            margin-bottom: 5px;
+        }
+        .winner-score {
+            font-size: 1.5rem;
+            color: #14c669;
+        }
+        .rankings {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 400px;
+            width: 100%;
+            margin-bottom: 40px;
+        }
+        .rank-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .rank-item.gold {
+            background: linear-gradient(90deg, rgba(204, 110, 10, 0.3), rgba(204, 155, 10, 0.3));
+            border: 2px solid #cc9a0a;
+        }
+        .rank-item.silver {
+            background: rgba(192, 192, 192, 0.1);
+            border: 2px solid silver;
+        }
+        .rank-item.bronze {
+            background: rgba(139, 69, 19, 0.2);
+            border: 2px solid #8b4513;
+        }
+        .rank-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            width: 40px;
+            text-align: center;
+        }
+        .rank-name {
+            flex: 1;
+            font-size: 1.2rem;
+        }
+        .rank-score {
+            font-weight: 700;
+            color: #14c669;
+        }
+        .icon {
+            font-size: 1.5rem;
+        }
+        .btn-container {
+            display: flex;
+            gap: 20px;
+        }
+        button {
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #c6bd14, #14c669);
+            color: #1a1a2e;
+            border: none;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(20, 198, 105, 0.4);
+        }
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        .btn-secondary:hover {
+            border-color: #14c669;
+        }
+    </style>
+</head>
+<body>
+    {% load custom_tags %}
+    <audio id="victorySound" loop>
+        <source src="{{ audio_file }}" type="audio/wav">
+    </audio>
+
+    <h1>Game Over!</h1>
+    <p class="subtitle">Final Rankings</p>
+
+    {% with rankings|length as total %}
+    {% if total > 0 %}
+    <div class="winner-section">
+        <div class="trophy">🏆</div>
+        <div class="winner-name">{{ rankings.0.0 }}</div>
+        <div class="winner-score">{{ rankings.0.1 }} points</div>
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="rankings">
+        {% for player, score in rankings %}
+        <div class="rank-item {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
+            <div class="rank-number">
+                {% if forloop.counter == 1 %}🥇
+                {% elif forloop.counter == 2 %}🥈
+                {% elif forloop.counter == 3 %}🥉
+                {% elif forloop.counter == 4 %}⭐
+                {% else %}{{ forloop.counter }}{% endif %}
+            </div>
+            <div class="rank-name">{{ player }}</div>
+            <div class="rank-score">{{ score }} pts</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="btn-container">
+        <a href="{% url 'quiz_new_game' %}"><button class="btn-primary">Play Again</button></a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const victorySound = document.getElementById('victorySound');
+            victorySound.volume = 0.5;
+            victorySound.play().catch(() => {});
+        });
+    </script>
+</body>
+</html>
