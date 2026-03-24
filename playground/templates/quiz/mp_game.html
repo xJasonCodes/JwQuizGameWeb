@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JW Quiz Game - Multiplayer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { padding-top: 0; }
+        .game-status-banner {
+            background: linear-gradient(90deg, #c6bd14, #14c669);
+            padding: 15px;
+            text-align: center;
+        }
+        .game-status {
+            display: inline-block;
+            background: #1a1a2e;
+            color: #c6bd14;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        .header {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .round-info {
+            font-size: 1.3rem;
+            color: #c6bd14;
+            font-weight: bold;
+        }
+        .scores {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .score-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        .score-item.current {
+            background: linear-gradient(90deg, #c6bd14, #14c669);
+            color: #1a1a2e;
+            font-weight: 600;
+        }
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            min-height: calc(100vh - 80px);
+        }
+        .player-turn {
+            font-size: 2rem;
+            margin-bottom: 30px;
+        }
+        .player-name {
+            color: #14c669;
+        }
+        .hint-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .hint-label {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        .hint-text {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            color: #78b3ff;
+        }
+        .points-info {
+            color: #c6bd14;
+            font-size: 1.1rem;
+            margin-top: 15px;
+        }
+        .hints-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 20px 0;
+            min-height: 100px;
+            border: 1px dashed rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .hint-item {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #78b3ff;
+            transition: all 0.3s ease;
+            filter: blur(5px);
+            user-select: none;
+            opacity: 0.5;
+        }
+        .hint-item.revealed {
+            filter: none;
+            opacity: 1;
+            background: rgba(120, 179, 255, 0.15);
+            user-select: text;
+        }
+        .hint-item.current {
+            border: 2px solid #14c669;
+            background: rgba(20, 198, 105, 0.1);
+        }
+        .question-mark {
+            font-size: 4rem;
+            color: #c6bd14;
+            margin-bottom: 20px;
+            text-decoration: underline;
+        }
+        .answer-section {
+            max-width: 500px;
+            width: 100%;
+        }
+        .search-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #14c669;
+        }
+        .dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(30, 30, 50, 0.98);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            max-height: 250px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            margin-top: 5px;
+        }
+        .dropdown.show {
+            display: block;
+        }
+        .dropdown-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .dropdown-item:hover {
+            background: rgba(20, 198, 105, 0.3);
+        }
+        .dropdown-item.hidden {
+            display: none;
+        }
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        button {
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #c6bd14, #14c669);
+            color: #1a1a2e;
+            border: none;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(20, 198, 105, 0.4);
+        }
+        .btn-host {
+            background: linear-gradient(90deg, #ff6b6b, #ee5a5a);
+            color: white;
+            border: none;
+        }
+        .btn-host:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(238, 90, 90, 0.4);
+        }
+        .feedback {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+        .feedback.correct {
+            background: rgba(20, 198, 105, 0.2);
+            color: #14c669;
+            display: block;
+        }
+        .feedback.wrong {
+            background: rgba(255, 80, 80, 0.2);
+            color: #ff5050;
+            display: block;
+        }
+        .loading {
+            display: none;
+            margin-top: 20px;
+        }
+        .loading.show {
+            display: block;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #14c669;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .hint-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .hint-btn {
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-skip {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        .btn-skip:hover {
+            border-color: #14c669;
+            transform: translateY(-2px);
+        }
+        .timer-display {
+            font-size: 1.5rem;
+            color: #c6bd14;
+            margin: 20px 0;
+        }
+        .timer-display.urgent {
+            color: #ff5050;
+            animation: pulse 0.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .host-controls {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 107, 107, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+        .host-controls h3 {
+            color: #ff6b6b;
+            margin-bottom: 15px;
+        }
+        .waiting-message {
+            font-size: 1.3rem;
+            color: #888;
+            text-align: center;
+            padding: 40px;
+        }
+        .confirm-section {
+            display: none;
+        }
+        .confirm-section.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    {% load custom_tags %}
+    
+    <audio id="correctSound">
+        <source src="/static/audio/correct.wav" type="audio/wav">
+    </audio>
+    <audio id="wrongSound">
+        <source src="/static/audio/wrong.wav" type="audio/wav">
+    </audio>
+    <audio id="finishSound">
+        <source src="/static/audio/final_win.wav" type="audio/wav">
+    </audio>
+    <audio id="bgMusic" loop>
+        <source src="/static/audio/background_1.wav" type="audio/wav">
+    </audio>
+    
+    <div class="game-status-banner">
+        <div class="game-status">Round {{ current_round }} of {{ num_rounds }}</div>
+    </div>
+    
+    <div class="header">
+        <div class="round-info">Room: {{ room_code }}</div>
+        <div class="scores" id="scoresContainer">
+            {% for player in players %}
+            <div class="score-item {% if player.id == current_player_id %}current{% endif %}" data-player="{{ player.id }}">
+                {{ player.name }}: {{ player.score }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="main-content">
+        {% if question %}
+        <h1 class="player-turn">
+            {% for player in players %}
+                {% if player.id == current_player_id %}
+                <span class="player-name">{{ player.name }}</span>'s Turn
+                {% endif %}
+            {% endfor %}
+        </h1>
+        
+        <div class="hint-container">
+            <div class="question-mark">?</div>
+            <div class="hint-label" id="hintLabel">Hint {{ question.hint_number }} of 10</div>
+            <div class="hint-text" id="hintText">{{ question.hint }}</div>
+            <div class="points-info" id="pointsInfo">Worth up to {{ question.max_score }} points!</div>
+            
+            <div class="timer-display" id="timerDisplay">Time: <span id="timeLeft">{{ timer_seconds }}</span>s</div>
+        </div>
+
+        {% if is_host %}
+        <div class="host-controls">
+            <h3>Host Controls</h3>
+            <div class="hint-buttons">
+                <button type="button" id="nextHintBtn" class="hint-btn btn-skip">Next Hint</button>
+                <button type="button" id="skipPlayerBtn" class="hint-btn btn-skip">Skip to Next Player</button>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="answer-section">
+            {% if is_host %}
+            <div class="waiting-message" style="color:#ff6b6b;">
+                You are the host - use the controls above to advance the game
+            </div>
+            {% elif current_player_id == my_id %}
+            <div class="search-container">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search for a character..." autocomplete="off">
+                <div id="dropdown" class="dropdown"></div>
+            </div>
+            <input type="hidden" id="selectedAnswer" value="">
+            
+            <div id="confirmSection" class="confirm-section">
+                <p style="text-align:center; margin-bottom:15px; color:#14c669;">Selected: <span id="selectedName"></span></p>
+                <div class="btn-container">
+                    <button type="button" id="changeBtn" class="hint-btn btn-skip">Change</button>
+                    <button type="button" id="submitBtn" class="btn-primary">Confirm Answer</button>
+                </div>
+            </div>
+            
+            <div id="skipSection">
+                <div class="hint-buttons">
+                    <button type="button" id="skipBtn" class="hint-btn btn-skip">Get Next Hint</button>
+                </div>
+            </div>
+            {% else %}
+            <div class="waiting-message">
+                Waiting for your turn...
+            </div>
+            {% endif %}
+        </div>
+
+        <div id="feedback" class="feedback"></div>
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+        </div>
+        {% else %}
+        <div class="waiting-message">
+            <h2>Game Finished!</h2>
+            <p>Thanks for playing!</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        var roomCode = '{{ room_code }}';
+        var isHost = {{ is_host|yesno:"true,false" }};
+        var myId = '{{ my_id }}';
+        var currentPlayerId = '{{ current_player_id }}';
+        var allNames = {{ all_names|JSON_dump|safe }};
+        var timerSeconds = {{ timer_seconds }};
+        var currentHintNumber = {{ question.hint_number|default:1 }};
+        
+        var timeLeft = timerSeconds;
+        var timerInterval = null;
+        var finishSoundPlayed = false;
+
+        function startTimer() {
+            // Everyone runs the timer locally for display
+            timeLeft = timerSeconds;
+            updateTimerDisplay();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(function() {
+                timeLeft--;
+                updateTimerDisplay();
+                // Only host triggers next hint when timer expires
+                if (timeLeft <= 0 && isHost) {
+                    clearInterval(timerInterval);
+                    triggerNextHint();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            var timerEl = document.getElementById('timerDisplay');
+            var timeEl = document.getElementById('timeLeft');
+            if (timerEl && timeEl) {
+                timeEl.textContent = timeLeft;
+                if (timeLeft <= 5) {
+                    timerEl.classList.add('urgent');
+                } else {
+                    timerEl.classList.remove('urgent');
+                }
+            }
+        }
+
+        function resetTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            startTimer();
+        }
+
+        // All clients should run the timer to see countdown
+        startTimer();
+
+        if (allNames && allNames.length > 0) {
+            var dropdown = document.getElementById('dropdown');
+            if (dropdown) {
+                var dropdownHtml = '';
+                for (var i = 0; i < allNames.length; i++) {
+                    dropdownHtml += '<div class="dropdown-item" data-name="' + allNames[i] + '">' + allNames[i] + '</div>';
+                }
+                dropdown.innerHTML = dropdownHtml;
+            }
+        }
+
+        var searchInput = document.getElementById('searchInput');
+        var dropdown = document.getElementById('dropdown');
+        var selectedAnswer = document.getElementById('selectedAnswer');
+        var selectedNameSpan = document.getElementById('selectedName');
+        var confirmSection = document.getElementById('confirmSection');
+        var skipSection = document.getElementById('skipSection');
+        var changeBtn = document.getElementById('changeBtn');
+        var submitBtn = document.getElementById('submitBtn');
+        var skipBtn = document.getElementById('skipBtn');
+        var feedback = document.getElementById('feedback');
+        var loading = document.getElementById('loading');
+        var nextHintBtn = document.getElementById('nextHintBtn');
+        var skipPlayerBtn = document.getElementById('skipPlayerBtn');
+        var correctSound = document.getElementById('correctSound');
+        var wrongSound = document.getElementById('wrongSound');
+        var finishSound = document.getElementById('finishSound');
+        var bgMusic = document.getElementById('bgMusic');
+        var playedSounds = {};  // Track which sounds have been played
+        
+        // Start background music (muted initially, will unmute on first interaction)
+        if (bgMusic) {
+            bgMusic.volume = 0.3;
+            bgMusic.play().catch(function() {});  // Try to autoplay
+        }
+
+        if (searchInput && dropdown) {
+            searchInput.addEventListener('input', function(e) {
+                var query = e.target.value.toLowerCase();
+                var items = dropdown.querySelectorAll('.dropdown-item');
+                var hasVisible = false;
+                for (var i = 0; i < items.length; i++) {
+                    var name = items[i].dataset.name.toLowerCase();
+                    if (name.indexOf(query) !== -1) {
+                        items[i].classList.remove('hidden');
+                        hasVisible = true;
+                    } else {
+                        items[i].classList.add('hidden');
+                    }
+                }
+                if (hasVisible && query.length > 0) dropdown.classList.add('show');
+                else dropdown.classList.remove('show');
+            });
+
+            dropdown.addEventListener('click', function(e) {
+                if (e.target.classList.contains('dropdown-item')) {
+                    var name = e.target.dataset.name;
+                    searchInput.value = name;
+                    selectedAnswer.value = name;
+                    selectedNameSpan.textContent = name;
+                    confirmSection.classList.add('show');
+                    skipSection.style.display = 'none';
+                    dropdown.classList.remove('show');
+                }
+            });
+
+            searchInput.addEventListener('focus', function() {
+                if (searchInput.value.length > 0) dropdown.classList.add('show');
+            });
+        }
+
+        if (changeBtn) {
+            changeBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                selectedAnswer.value = '';
+                confirmSection.classList.remove('show');
+                skipSection.style.display = 'block';
+                searchInput.focus();
+            });
+        }
+
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                var guess = selectedAnswer.value;
+                if (!guess) return;
+
+                loading.classList.add('show');
+                
+                fetch('/playground/multiplayer/submit/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: 'room_code=' + encodeURIComponent(roomCode) + '&answer=' + encodeURIComponent(guess)
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    loading.classList.remove('show');
+                    if (data.success) {
+                        if (data.correct) {
+                            if (correctSound) correctSound.play().catch(function() {});
+                            feedback.className = 'feedback correct';
+                            feedback.innerHTML = 'Correct! +' + data.points + ' points!';
+                            setTimeout(function() {
+                                feedback.className = 'feedback';
+                                refreshGame();
+                            }, 1500);
+                        } else {
+                            // Wrong answer - refresh immediately to show new hint
+                            if (wrongSound) wrongSound.play().catch(function() {});
+                            feedback.className = 'feedback wrong';
+                            feedback.innerHTML = data.message || 'Incorrect!';
+                            setTimeout(function() {
+                                feedback.className = 'feedback';
+                                refreshGame();
+                            }, 800);
+                        }
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Error:', error);
+                    loading.classList.remove('show');
+                });
+            });
+        }
+
+        if (skipBtn) {
+            skipBtn.addEventListener('click', function() {
+                loading.classList.add('show');
+                
+                fetch('/playground/multiplayer/submit/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: 'room_code=' + encodeURIComponent(roomCode) + '&answer='
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    loading.classList.remove('show');
+                    refreshGame();
+                })
+                .catch(function(error) {
+                    console.error('Error:', error);
+                    loading.classList.remove('show');
+                });
+            });
+        }
+
+        function triggerNextHint() {
+            if (!isHost) return;
+            loading.classList.add('show');
+            
+            fetch('/playground/multiplayer/next-hint/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: 'room_code=' + encodeURIComponent(roomCode)
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    loading.classList.remove('show');
+                    refreshGame();
+                })
+                .catch(function(error) {
+                    console.error('Error:', error);
+                    loading.classList.remove('show');
+                });
+        }
+
+        if (nextHintBtn) {
+            nextHintBtn.addEventListener('click', function() {
+                triggerNextHint();
+            });
+        }
+
+        if (skipPlayerBtn) {
+            skipPlayerBtn.addEventListener('click', function() {
+                loading.classList.add('show');
+                
+                fetch('/playground/multiplayer/skip/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: 'room_code=' + encodeURIComponent(roomCode)
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    loading.classList.remove('show');
+                    refreshGame();
+                })
+                .catch(function(error) {
+                    console.error('Error:', error);
+                    loading.classList.remove('show');
+                });
+            });
+        }
+
+        function refreshGame() {
+            window.location.reload();
+        }
+
+        function pollGameState() {
+            setInterval(function() {
+                fetch('/playground/multiplayer/state/' + roomCode + '/', {
+                    method: 'GET',
+                    credentials: 'same-origin'
+                })
+                .then(function(response) { return response.json(); })
+                .then(function(state) {
+                    // Check for sounds to play
+                    if (state.sound && state.sound_id) {
+                        var soundKey = state.sound_id;
+                        if (!playedSounds[soundKey]) {
+                            playedSounds[soundKey] = true;
+                            if (state.sound === 'correct' && correctSound) {
+                                correctSound.currentTime = 0;
+                                correctSound.play().catch(function() {});
+                            } else if (state.sound === 'wrong' && wrongSound) {
+                                wrongSound.currentTime = 0;
+                                wrongSound.play().catch(function() {});
+                            } else if (state.sound === 'finished' && finishSound) {
+                                if (bgMusic) bgMusic.pause();
+                                finishSound.currentTime = 0;
+                                finishSound.play().catch(function() {});
+                            }
+                        }
+                    }
+                    
+                    // Update UI in real-time
+                    if (state.question) {
+                        var hintLabel = document.getElementById('hintLabel');
+                        var hintText = document.getElementById('hintText');
+                        var pointsInfo = document.getElementById('pointsInfo');
+                        
+                        if (hintLabel) hintLabel.textContent = 'Hint ' + state.question.hint_number + ' of 10';
+                        if (hintText) hintText.textContent = state.question.hint;
+                        if (pointsInfo) pointsInfo.textContent = 'Worth up to ' + state.question.max_score + ' points!';
+                        
+                        // Reset timer when hint number changes - ALL clients need this
+                        if (state.question.hint_number !== currentHintNumber) {
+                            currentHintNumber = state.question.hint_number;
+                            timeLeft = state.timer_seconds;
+                            updateTimerDisplay();  // Update for everyone
+                        }
+                    }
+                    
+                    // Play finish sound and show results
+                    if (state.status === 'finished') {
+                        if (finishSound && !finishSoundPlayed) {
+                            finishSoundPlayed = true;
+                            if (bgMusic) bgMusic.pause();
+                            finishSound.currentTime = 0;
+                            finishSound.play().catch(function() {});
+                        }
+                        // Delay reload slightly to let sound play
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 500);
+                    } else if (state.current_player_id !== currentPlayerId) {
+                        currentPlayerId = state.current_player_id;
+                        window.location.reload();
+                    }
+                })
+                .catch(function(error) {
+                    console.error('Polling error:', error);
+                });
+            }, 1000);
+        }
+
+        pollGameState();
+
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.search-container')) return;
+            if (dropdown) dropdown.classList.remove('show');
+        });
+    </script>
+</body>
+</html>

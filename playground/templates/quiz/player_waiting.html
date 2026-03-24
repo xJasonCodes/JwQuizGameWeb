@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiting - JW Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        h1 { font-size: 2rem; margin-bottom: 20px; }
+        .room-code { font-size: 2.5rem; color: #c6bd14; margin: 20px 0; }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #14c669;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Waiting for Host</h1>
+        <p>Room Code:</p>
+        <div class="room-code">{{ room_code }}</div>
+        <p>Host: {{ host_name }}</p>
+        <p>You: {{ player_name }}</p>
+        
+        <div class="spinner"></div>
+        <p>Game will start soon...</p>
+    </div>
+
+    <script>
+        var roomCode = '{{ room_code }}';
+        
+        function checkGameStart() {
+            fetch('/playground/multiplayer/state/' + roomCode + '/')
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'playing') {
+                    window.location.href = '/playground/multiplayer/game/' + roomCode + '/';
+                } else if (data.status === 'finished') {
+                    window.location.href = '/playground/';
+                }
+            });
+        }
+        
+        setInterval(checkGameStart, 2000);
+    </script>
+</body>
+</html>

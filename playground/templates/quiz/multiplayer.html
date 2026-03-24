@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JW Quiz Game - Multiplayer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            background: linear-gradient(90deg, #c6bd14, #14c669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .subtitle { color: #888; margin-bottom: 30px; }
+        
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        button, .btn {
+            padding: 20px 40px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #c6bd14, #14c669);
+            color: #1a1a2e;
+            border: none;
+        }
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+        button:hover, .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(20, 198, 105, 0.4);
+        }
+        
+        .back-link {
+            margin-top: 30px;
+            color: #888;
+        }
+        .back-link a { color: #14c669; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JW Quiz Game</h1>
+        <p class="subtitle">Multiplayer Mode</p>
+        
+        <div class="btn-group">
+            <a href="{% url 'host_game' %}" class="btn btn-primary">Create Game (Host)</a>
+            <form action="/playground/multiplayer/join/" method="get" style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+                <input type="text" name="room_code" placeholder="Room code" 
+                       style="flex:1; min-width:120px; padding:15px; border:2px solid rgba(255,255,255,0.2); 
+                              border-radius:30px; background:rgba(255,255,255,0.1); color:white; 
+                              font-size:1rem; text-align:center;" required pattern="[0-9]{4}" maxlength="4">
+                <button type="submit" class="btn btn-secondary">Join</button>
+            </form>
+        </div>
+        
+        <p style="margin-top:20px; color:#666; font-size:0.9rem;">
+            Host doesn't play - just controls the game. Share the room code with players!
+        </p>
+        
+        <p style="margin-top:15px; color:#555; font-size:0.85rem;">
+            <strong>For LAN play:</strong> Run the server with:<br>
+            <code>python manage.py runserver 0.0.0.0:8080</code><br>
+            Then access via your computer's IP (e.g., http://192.168.1.x:8080/playground/)
+        </p>
+        
+        <p class="back-link"><a href="{% url 'quiz_index' %}">Back to Single Player</a></p>
+    </div>
+</body>
+</html>

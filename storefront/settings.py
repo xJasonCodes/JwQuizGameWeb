@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-r*c9jb%$pclbznq(l+&q6w-s*^x7*25r$gh#v+j*o@p8qd96bt
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.staticfiles',
     'playground',
-    "debug_toolbar"
+    "debug_toolbar",
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -69,6 +70,14 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'storefront.wsgi.application'
+
+ASGI_APPLICATION = 'storefront.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer'
+    }
+}
 
 
 # Database

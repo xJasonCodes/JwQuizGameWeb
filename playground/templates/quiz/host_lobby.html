@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Host Lobby - JW Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+        .container { max-width: 600px; margin: 0 auto; }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .room-code {
+            font-size: 3rem;
+            color: #c6bd14;
+            font-weight: bold;
+            letter-spacing: 5px;
+            margin: 20px 0;
+        }
+        
+        .players-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .player-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .player-card {
+            background: rgba(20, 198, 105, 0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 2px solid #14c669;
+        }
+        
+        .player-card.host {
+            background: rgba(198, 189, 20, 0.2);
+            border-color: #c6bd14;
+        }
+        
+        .setup-form {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        input, select {
+            padding: 12px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .btn-start {
+            background: linear-gradient(90deg, #c6bd14, #14c669);
+            color: #1a1a2e;
+            border: none;
+            padding: 15px 50px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-back {
+            color: #888;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .btn-back a { color: #14c669; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>JW Quiz Game</h1>
+            <p>Share this code with players:</p>
+            <div class="room-code">{{ room_code }}</div>
+            <p>Timer: {{ timer_seconds }} seconds per question</p>
+        </div>
+        
+        <div class="players-section">
+            <h2>Players Joined</h2>
+            <div class="player-list" id="playerList">
+                <div class="player-card host">{{ host_name }} (Host)</div>
+            </div>
+        </div>
+        
+        <div class="setup-form">
+            <div class="form-row">
+                <label>Number of Rounds:</label>
+                <input type="number" id="numRounds" value="5" min="1" max="20">
+            </div>
+            <div style="text-align:center;">
+                <button class="btn-start" onclick="startGame()">Start Game</button>
+            </div>
+        </div>
+        
+        <p class="btn-back"><a href="/">Leave Game</a></p>
+    </div>
+
+    <script>
+        var roomCode = '{{ room_code }}';
+        
+        function startGame() {
+            const numRounds = document.getElementById('numRounds').value;
+            fetch('/playground/multiplayer/state/' + roomCode + '/')
+            .then(r => r.json())
+            .then(state => {
+                const playerCount = state.players ? state.players.length : 0;
+                if (playerCount < 1) {
+                    alert('Need at least 1 player to start!');
+                    return;
+                }
+                return fetch('{% url "mp_start_game" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: 'room_code=' + roomCode + '&num_rounds=' + numRounds
+                });
+            })
+            .then(r => r ? r.json() : null)
+            .then(data => {
+                if (data && data.success) {
+                    window.location.href = '/playground/multiplayer/game/' + roomCode + '/';
+                }
+            })
+            .catch(err => console.error(err));
+        }
+        
+        function updatePlayers() {
+            fetch('/playground/multiplayer/state/' + roomCode + '/')
+            .then(r => r.json())
+            .then(data => {
+                const list = document.getElementById('playerList');
+                list.innerHTML = '<div class="player-card host">{{ host_name }} (Host)</div>';
+                if (data.players) {
+                    data.players.forEach(p => {
+                        if (p.name !== '{{ host_name }}') {
+                            list.innerHTML += '<div class="player-card">' + p.name + '</div>';
+                        }
+                    });
+                }
+            })
+            .catch(err => console.error('Update players error:', err));
+        }
+        
+        setInterval(updatePlayers, 2000);
+    </script>
+</body>
+</html>
