@@ -22,7 +22,7 @@
             padding: 40px 20px;
         }
         h1 {
-            background: linear-gradient(90deg, #c6bd14, #14c669);
+            background: linear-gradient(90deg, #673AB7, #2196f3);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-size: 2.5rem;
@@ -51,7 +51,7 @@
         }
         .winner-score {
             font-size: 1.5rem;
-            color: #14c669;
+            color: #2196f3;
         }
         .rankings {
             display: flex;
@@ -93,7 +93,7 @@
         }
         .rank-score {
             font-weight: 700;
-            color: #14c669;
+            color: #2196f3;
         }
         .icon {
             font-size: 1.5rem;
@@ -112,7 +112,7 @@
             text-decoration: none;
         }
         .btn-primary {
-            background: linear-gradient(90deg, #c6bd14, #14c669);
+            background: linear-gradient(90deg, #673AB7, #2196f3);
             color: #1a1a2e;
             border: none;
         }
@@ -126,15 +126,24 @@
             border: 2px solid rgba(255, 255, 255, 0.3);
         }
         .btn-secondary:hover {
-            border-color: #14c669;
+            border-color: #2196f3;
         }
     </style>
 </head>
 <body>
     {% load custom_tags %}
+    <!-- TEMP: victory mp3s don't exist yet, looping final_win instead -->
     <audio id="victorySound" loop>
         <source src="{{ audio_file }}" type="audio/wav">
     </audio>
+    <!--
+    <audio id="victoryIntro">
+        <source src="/static/audio/victory_intro.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="victoryFull" loop>
+        <source src="/static/audio/victory_full.mp3" type="audio/mpeg">
+    </audio>
+    -->
 
     <h1>Game Over!</h1>
     <p class="subtitle">Final Rankings</p>
@@ -171,9 +180,29 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // TEMP: victory mp3s missing, loop final_win for now
             const victorySound = document.getElementById('victorySound');
-            victorySound.volume = 0.5;
-            victorySound.play().catch(() => {});
+            if (victorySound) {
+                victorySound.volume = 0.5;
+                victorySound.play().catch(() => {});
+            }
+
+            /*
+            const victoryIntro = document.getElementById('victoryIntro');
+            const victoryFull = document.getElementById('victoryFull');
+            
+            if (victoryIntro) {
+                victoryIntro.volume = 0.5;
+                victoryIntro.play().catch(() => {});
+                
+                if (victoryFull) {
+                    victoryIntro.addEventListener('ended', () => {
+                        victoryFull.volume = 0.5;
+                        victoryFull.play().catch(() => {});
+                    }, { once: true });
+                }
+            }
+            */
         });
     </script>
 </body>

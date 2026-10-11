@@ -28,7 +28,7 @@
         }
         .round-info {
             font-size: 1.2rem;
-            color: #c6bd14;
+            color: #673AB7;
         }
         .scores {
             display: flex;
@@ -42,7 +42,7 @@
             font-size: 0.9rem;
         }
         .score-item.current {
-            background: linear-gradient(90deg, #c6bd14, #14c669);
+            background: linear-gradient(90deg, #673AB7, #2196f3);
             color: #1a1a2e;
         }
         .main-content {
@@ -57,7 +57,7 @@
             margin-bottom: 30px;
         }
         .player-name {
-            color: #14c669;
+            color: #2196f3;
         }
         .hint-container {
             background: rgba(255, 255, 255, 0.1);
@@ -80,7 +80,7 @@
             color: #78b3ff;
         }
         .points-info {
-            color: #c6bd14;
+            color: #673AB7;
             font-size: 1.1rem;
             margin-top: 15px;
         }
@@ -112,12 +112,12 @@
             user-select: text;
         }
         .hint-item.current {
-            border: 2px solid #14c669;
+            border: 2px solid #2196f3;
             background: rgba(20, 198, 105, 0.1);
         }
         .question-mark {
             font-size: 4rem;
-            color: #c6bd14;
+            color: #673AB7;
             margin-bottom: 20px;
             text-decoration: underline;
         }
@@ -141,7 +141,7 @@
         }
         .search-input:focus {
             outline: none;
-            border-color: #14c669;
+            border-color: #2196f3;
         }
         .dropdown {
             position: absolute;
@@ -186,7 +186,7 @@
             transition: transform 0.2s, box-shadow 0.2s;
         }
         .btn-primary {
-            background: linear-gradient(90deg, #c6bd14, #14c669);
+            background: linear-gradient(90deg, #673AB7, #2196f3);
             color: #1a1a2e;
             border: none;
         }
@@ -203,7 +203,7 @@
         }
         .feedback.correct {
             background: rgba(20, 198, 105, 0.2);
-            color: #14c669;
+            color: #2196f3;
             display: block;
         }
         .feedback.wrong {
@@ -220,7 +220,7 @@
         }
         .spinner {
             border: 4px solid rgba(255, 255, 255, 0.1);
-            border-top: 4px solid #14c669;
+            border-top: 4px solid #2196f3;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -251,7 +251,7 @@
             border: 2px solid rgba(255, 255, 255, 0.3);
         }
         .btn-skip:hover {
-            border-color: #14c669;
+            border-color: #2196f3;
             transform: translateY(-2px);
         }
         .timer-display {
@@ -304,7 +304,7 @@
             <input type="hidden" id="selectedAnswer" value="">
             
             <div id="confirmSection" style="display:none;">
-                <p style="text-align:center; margin-bottom:15px; color:#14c669;">Selected: <span id="selectedName"></span></p>
+                <p style="text-align:center; margin-bottom:15px; color:#2196f3;">Selected: <span id="selectedName"></span></p>
                 <div class="btn-container">
                     <button type="button" id="changeBtn" class="hint-btn btn-skip">Change</button>
                     <button type="button" id="submitBtn" class="btn-primary">Confirm Answer</button>
@@ -378,7 +378,7 @@
                 var timerDiv = document.createElement('div');
                 timerDiv.id = 'timerDisplay';
                 timerDiv.className = 'timer-display';
-                timerDiv.style.cssText = 'text-align:center; margin-top:15px; font-size:1.1rem; color:#c6bd14;';
+                timerDiv.style.cssText = 'text-align:center; margin-top:15px; font-size:1.1rem; color:#673AB7;';
                 document.querySelector('.hint-container').appendChild(timerDiv);
             }
             updateTimerDisplay();

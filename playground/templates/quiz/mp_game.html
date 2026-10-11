@@ -8,14 +8,14 @@
     <style>
         body { padding-top: 0; }
         .game-status-banner {
-            background: linear-gradient(90deg, #c6bd14, #14c669);
+            background: linear-gradient(90deg, #673AB7, #2196f3);
             padding: 15px;
             text-align: center;
         }
         .game-status {
             display: inline-block;
             background: #1a1a2e;
-            color: #c6bd14;
+            color: #673AB7;
             padding: 10px 30px;
             border-radius: 25px;
             font-size: 1.3rem;
@@ -43,7 +43,7 @@
         }
         .round-info {
             font-size: 1.3rem;
-            color: #c6bd14;
+            color: #673AB7;
             font-weight: bold;
         }
         .scores {
@@ -58,7 +58,7 @@
             font-size: 0.9rem;
         }
         .score-item.current {
-            background: linear-gradient(90deg, #c6bd14, #14c669);
+            background: linear-gradient(90deg, #673AB7, #2196f3);
             color: #1a1a2e;
             font-weight: 600;
         }
@@ -74,7 +74,7 @@
             margin-bottom: 30px;
         }
         .player-name {
-            color: #14c669;
+            color: #2196f3;
         }
         .hint-container {
             background: rgba(255, 255, 255, 0.1);
@@ -97,7 +97,7 @@
             color: #78b3ff;
         }
         .points-info {
-            color: #c6bd14;
+            color: #673AB7;
             font-size: 1.1rem;
             margin-top: 15px;
         }
@@ -129,12 +129,12 @@
             user-select: text;
         }
         .hint-item.current {
-            border: 2px solid #14c669;
+            border: 2px solid #2196f3;
             background: rgba(20, 198, 105, 0.1);
         }
         .question-mark {
             font-size: 4rem;
-            color: #c6bd14;
+            color: #673AB7;
             margin-bottom: 20px;
             text-decoration: underline;
         }
@@ -158,7 +158,7 @@
         }
         .search-input:focus {
             outline: none;
-            border-color: #14c669;
+            border-color: #2196f3;
         }
         .dropdown {
             position: absolute;
@@ -203,7 +203,7 @@
             transition: transform 0.2s, box-shadow 0.2s;
         }
         .btn-primary {
-            background: linear-gradient(90deg, #c6bd14, #14c669);
+            background: linear-gradient(90deg, #673AB7, #2196f3);
             color: #1a1a2e;
             border: none;
         }
@@ -229,7 +229,7 @@
         }
         .feedback.correct {
             background: rgba(20, 198, 105, 0.2);
-            color: #14c669;
+            color: #2196f3;
             display: block;
         }
         .feedback.wrong {
@@ -246,7 +246,7 @@
         }
         .spinner {
             border: 4px solid rgba(255, 255, 255, 0.1);
-            border-top: 4px solid #14c669;
+            border-top: 4px solid #2196f3;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -277,12 +277,12 @@
             border: 2px solid rgba(255, 255, 255, 0.3);
         }
         .btn-skip:hover {
-            border-color: #14c669;
+            border-color: #2196f3;
             transform: translateY(-2px);
         }
         .timer-display {
             font-size: 1.5rem;
-            color: #c6bd14;
+            color: #673AB7;
             margin: 20px 0;
         }
         .timer-display.urgent {
@@ -327,11 +327,19 @@
     <audio id="wrongSound">
         <source src="/static/audio/wrong.wav" type="audio/wav">
     </audio>
-    <audio id="finishSound">
+    <audio id="finalWinSound">
         <source src="/static/audio/final_win.wav" type="audio/wav">
     </audio>
+    <!--
+    <audio id="victoryIntro">
+        <source src="/static/audio/victory_intro.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="victoryFull" loop>
+        <source src="/static/audio/victory_full.mp3" type="audio/mpeg">
+    </audio>
+    -->
     <audio id="bgMusic" loop>
-        <source src="/static/audio/background_1.wav" type="audio/wav">
+        <source src="{{ bg_music }}" type="audio/wav">
     </audio>
     
     <div class="game-status-banner">
@@ -391,7 +399,7 @@
             <input type="hidden" id="selectedAnswer" value="">
             
             <div id="confirmSection" class="confirm-section">
-                <p style="text-align:center; margin-bottom:15px; color:#14c669;">Selected: <span id="selectedName"></span></p>
+                <p style="text-align:center; margin-bottom:15px; color:#2196f3;">Selected: <span id="selectedName"></span></p>
                 <div class="btn-container">
                     <button type="button" id="changeBtn" class="hint-btn btn-skip">Change</button>
                     <button type="button" id="submitBtn" class="btn-primary">Confirm Answer</button>
@@ -436,14 +444,12 @@
         var finishSoundPlayed = false;
 
         function startTimer() {
-            // Everyone runs the timer locally for display
             timeLeft = timerSeconds;
             updateTimerDisplay();
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(function() {
                 timeLeft--;
                 updateTimerDisplay();
-                // Only host triggers next hint when timer expires
                 if (timeLeft <= 0 && isHost) {
                     clearInterval(timerInterval);
                     triggerNextHint();
@@ -469,7 +475,6 @@
             startTimer();
         }
 
-        // All clients should run the timer to see countdown
         startTimer();
 
         if (allNames && allNames.length > 0) {
@@ -498,14 +503,17 @@
         var skipPlayerBtn = document.getElementById('skipPlayerBtn');
         var correctSound = document.getElementById('correctSound');
         var wrongSound = document.getElementById('wrongSound');
-        var finishSound = document.getElementById('finishSound');
+        var finalWinSound = document.getElementById('finalWinSound');
+        /*
+        var victoryIntro = document.getElementById('victoryIntro');
+        var victoryFull = document.getElementById('victoryFull');
+        */
         var bgMusic = document.getElementById('bgMusic');
-        var playedSounds = {};  // Track which sounds have been played
+        var playedSounds = {};
         
-        // Start background music (muted initially, will unmute on first interaction)
         if (bgMusic) {
             bgMusic.volume = 0.3;
-            bgMusic.play().catch(function() {});  // Try to autoplay
+            bgMusic.play().catch(function() {});
         }
 
         if (searchInput && dropdown) {
@@ -581,7 +589,6 @@
                                 refreshGame();
                             }, 1500);
                         } else {
-                            // Wrong answer - refresh immediately to show new hint
                             if (wrongSound) wrongSound.play().catch(function() {});
                             feedback.className = 'feedback wrong';
                             feedback.innerHTML = data.message || 'Incorrect!';
@@ -688,7 +695,6 @@
                 })
                 .then(function(response) { return response.json(); })
                 .then(function(state) {
-                    // Check for sounds to play
                     if (state.sound && state.sound_id) {
                         var soundKey = state.sound_id;
                         if (!playedSounds[soundKey]) {
@@ -699,15 +705,28 @@
                             } else if (state.sound === 'wrong' && wrongSound) {
                                 wrongSound.currentTime = 0;
                                 wrongSound.play().catch(function() {});
-                            } else if (state.sound === 'finished' && finishSound) {
+                            } else if (state.sound === 'finished') {
                                 if (bgMusic) bgMusic.pause();
-                                finishSound.currentTime = 0;
-                                finishSound.play().catch(function() {});
+                                if (finalWinSound) {
+                                    finalWinSound.currentTime = 0;
+                                    finalWinSound.play().catch(function() {});
+                                }
+                                /*
+                                if (victoryIntro) {
+                                    victoryIntro.currentTime = 0;
+                                    victoryIntro.play().catch(function() {});
+                                }
+                                if (victoryFull) {
+                                    setTimeout(function() {
+                                        victoryFull.volume = 0.5;
+                                        victoryFull.play().catch(function() {});
+                                    }, victoryIntro.duration * 1000 || 5000);
+                                }
+                                */
                             }
                         }
                     }
                     
-                    // Update UI in real-time
                     if (state.question) {
                         var hintLabel = document.getElementById('hintLabel');
                         var hintText = document.getElementById('hintText');
@@ -717,26 +736,37 @@
                         if (hintText) hintText.textContent = state.question.hint;
                         if (pointsInfo) pointsInfo.textContent = 'Worth up to ' + state.question.max_score + ' points!';
                         
-                        // Reset timer when hint number changes - ALL clients need this
                         if (state.question.hint_number !== currentHintNumber) {
                             currentHintNumber = state.question.hint_number;
                             timeLeft = state.timer_seconds;
-                            updateTimerDisplay();  // Update for everyone
+                            updateTimerDisplay();
                         }
                     }
                     
-                    // Play finish sound and show results
                     if (state.status === 'finished') {
-                        if (finishSound && !finishSoundPlayed) {
+                        if (!finishSoundPlayed) {
                             finishSoundPlayed = true;
                             if (bgMusic) bgMusic.pause();
-                            finishSound.currentTime = 0;
-                            finishSound.play().catch(function() {});
+                            if (finalWinSound) {
+                                finalWinSound.currentTime = 0;
+                                finalWinSound.play().catch(function() {});
+                            }
+                            /*
+                            if (victoryIntro) {
+                                victoryIntro.currentTime = 0;
+                                victoryIntro.play().catch(function() {});
+                            }
+                            if (victoryFull) {
+                                setTimeout(function() {
+                                    victoryFull.volume = 0.5;
+                                    victoryFull.play().catch(function() {});
+                                }, victoryIntro && victoryIntro.duration ? victoryIntro.duration * 1000 : 5000);
+                            }
+                            */
                         }
-                        // Delay reload slightly to let sound play
                         setTimeout(function() {
                             window.location.reload();
-                        }, 500);
+                        }, 1000);
                     } else if (state.current_player_id !== currentPlayerId) {
                         currentPlayerId = state.current_player_id;
                         window.location.reload();

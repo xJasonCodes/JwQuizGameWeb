@@ -22,8 +22,8 @@ class GameRoom:
         self.current_question = None
         self.current_hints = []
         self.created_at = datetime.now()
-        self.last_sound = None  # Track what sound should play
-        self.sound_played_ids = set()  # Track which sounds have been played
+        self.last_sound = None
+        self.sound_played_ids = set()
     
     def add_pending_player(self, player_id, player_name):
         self.pending_players[player_id] = {'name': player_name}
@@ -100,7 +100,6 @@ class GameRoom:
             self._move_to_next_question()
             return {'success': True, 'correct': False, 'message': 'Out of hints'}
         
-        # Actually advance to next hint when wrong answer
         self.hint_index += 1
         self.last_sound = 'wrong'
         return {'success': True, 'correct': False, 'hint_index': self.hint_index}

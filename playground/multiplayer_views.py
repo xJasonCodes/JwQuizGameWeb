@@ -82,11 +82,16 @@ def host_lobby(request, room_code):
     if request.session.get('room_code') != room_code or not request.session.get('is_host'):
         return redirect('multiplayer_index')
     
+    num_players = len(room.players) if room.players else 1
+    num_characters = len(data)
+    max_rounds = max(1, num_characters // num_players)
+    
     return render(request, 'quiz/host_lobby.html', {
         'room_code': room_code,
         'host_name': room.host_name,
         'players': room.players,
-        'timer_seconds': room.timer_seconds
+        'timer_seconds': room.timer_seconds,
+        'max_rounds': max_rounds
     })
 
 
@@ -153,7 +158,29 @@ def get_bible_names():
         'Benjamin', 'Joseph', 'Gad', 'Asher', 'Issachar', 'Zebulun', 'Dan', 'Naphtali', 'Manasseh',
         'Ephraim', 'Aaron', 'Miriam', 'Joshua', 'Caleb', 'Samuel', 'Eli', 'David', 'Saul',
         'Jonathan', 'Solomon', 'Elijah', 'Elisha', 'Daniel', 'Esther', 'Mordecai', 'Nehemiah', 'Ezra',
-        'Ruth', 'Naomi', 'Boaz', 'Mary', 'Joseph', 'Jesus', 'Peter', 'Paul', 'John', 'James'
+        'Ruth', 'Naomi', 'Boaz', 'Mary', 'Joseph', 'Jesus', 'Peter', 'Paul', 'John', 'James',
+        'Andrew', 'Philip', 'Bartholomew', 'Thomas', 'Matthew', 'Jude', 'Thaddaeus', 'Nathanael',
+        'Lazarus', 'Mary Magdalene', 'Martha', 'Mark', 'Luke', 'Timothy', 'Titus', 'Silas',
+        'Abel', 'Enoch', 'Methuselah', 'Enoch', 'Shem', 'Ham', 'Japheth', 'Ishmael', 'Ishmael',
+        'Keturah', 'Zimran', 'Jokshan', ' Medan', 'Midian', 'Jacob', 'Rachel', 'Leah', 'Bilhah',
+        'Zilpah', 'Dinah', 'Tamar', 'Er', 'Onan', 'Shelah', 'Zereth', 'Aholibamah', 'Judith',
+        'Bashemath', ' Mahalath', 'Nebaioth', 'Kedar', 'Adbeel', 'Midian', 'Sheba', 'Ophir', 'Havilah',
+        'Job', 'Bildad', 'Zophar', 'Elihu', 'Beor', 'Balak', 'Balaam', 'Jethro', 'Zipporah',
+        'Hobab', 'Kenaz', 'Othniel', 'Ehud', 'Shamgar', 'Deborah', 'Gideon', 'Tola', 'Jair',
+        'Jephthah', 'Ibzan', 'Elon', 'Abdon', 'Samson', 'Manoah', 'Delilah', 'Phinehas', 'Elkanah',
+        'Zadok', 'Ahimaaz', 'Uriah', 'Bathsheba', 'Nathan', 'Joab', 'Abishai', 'Asahel', 'Amasa',
+        'Absalom', 'Adonijah', 'Solomon', 'Rehoboam', 'Jeroboam', 'Nadab', 'Baasha', 'Elah', 'Zimri',
+        'Omri', 'Ahab', 'Ahaziah', 'Jehoram', 'Jehu', 'Jehoahaz', 'Jehoash', 'Jeroboam II', 'Zachariah',
+        'Shallum', 'Menahem', 'Pekahiah', 'Pekah', 'Hoshea', 'Hezekiah', 'Manasseh', 'Amon', 'Josiah',
+        'Jehoahaz', 'Jehoiachin', 'Zedekiah', 'Shemaiah', 'Huldah', 'Baruch', 'Neriah', 'Seraiah',
+        'Jezebel', 'Athaliah', 'Gomer', 'Hosea', 'Amos', 'Jonah', 'Micah', 'Nahum', 'Habakkuk',
+        'Zephaniah', 'Haggai', 'Zechariah', 'Malachi', 'John Mark', 'Barnabas', 'Junias', 'Andronicus',
+        'Herod', 'Herod Antipas', 'Herod Philip', 'Herod Agrippa', 'Felix', 'Festus', 'Lysias',
+        'Tertullus', 'Ananias', 'Sapphira', 'Simon the Sorcerer', 'Ethiopian Eunuch', 'Lydia',
+        'Phoebe', 'Euodia', 'Syntyche', 'Clement', 'Epaphras', 'Archippus', 'Onesimus', 'Philemon',
+        'Apphia', 'Nymph', 'Nicanor', ' Parmenas', 'Prochorus', 'Timon', 'Nicolaitan', 'Balaam',
+        'Korah', 'Dathan', 'Abiram', 'Nadab', 'Abihu', ' Gehazi', 'Jezreel', 'Jehu', 'Shaphat',
+        'Eliab', 'Nethaneel', 'Jedeiah', 'Mattathias', 'Jozabad', 'Kolaiah', 'Neariah', 'Shemaiah',
     ]
 
 
@@ -228,7 +255,6 @@ def multiplayer_game(request, room_code):
             return redirect('mp_player', room_code=room_code)
     
     if room.status == 'finished':
-        # Generate rankings
         player_list = [{'name': p['name'], 'score': p['score']} for p in room.players.values()]
         player_list.sort(key=lambda x: x['score'], reverse=True)
         rankings = [(p['name'], p['score']) for p in player_list]
@@ -240,6 +266,9 @@ def multiplayer_game(request, room_code):
     state = room.get_state()
     state['is_host'] = is_host
     state['my_id'] = player_id
+    
+    bg_options = ['/static/audio/background_1.wav', '/static/audio/background_2.wav', '/static/audio/background_3.wav']
+    state['bg_music'] = random.choice(bg_options)
     
     quiz_names = [data[key][0] for key in data]
     all_names = list(set(quiz_names + get_bible_names()))
